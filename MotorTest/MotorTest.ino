@@ -1,3 +1,5 @@
+//Reference code: https://drive.google.com/drive/folders/1Vp2VSa5fLOf15AE8zzdyNzfUnbGOZkA6
+
 #include <Servo.h>
 
 //Setting the Arduino pwm (pulse-width-modulation) pins for each motor.
