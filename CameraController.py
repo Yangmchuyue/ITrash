@@ -2,7 +2,7 @@ import cv2
 
 # Intialize Video Capture
 #vs = cv2.VideoCapture(0)
-vs = cv2.VideoCapture("")
+vs = cv2.VideoCapture("hardhatVid.MOV")
 
 while(True):
     # Get current frame
