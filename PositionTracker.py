@@ -9,6 +9,8 @@ subtractor = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=100, d
 
 while True:
     _, frame = cap.read()
+    if frame is None:
+        break
     mask = subtractor.apply(frame)
     cv2.imshow('Original', frame)
     cv2.imshow('New Image', mask)
