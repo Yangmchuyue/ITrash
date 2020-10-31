@@ -6,7 +6,7 @@ import time
  
 def getNextFrame(centerOne):
     print("Sleep Start")
-    time.sleep(0.5)
+    time.sleep(0.25)
     print("Sleep End")
     
     # Get current frame
@@ -50,20 +50,28 @@ def getNextFrame(centerOne):
             centerTwo = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
         # only proceed if the radius meets a minimum size
         if radius > 10:
-            # draw the circle and centroid on the frame,
-            # then update the list of tracked points
+            #draw the circle and centroid on the frame,
+            #then update the list of tracked points
             cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
-            cv2.circle(frame, centerTwo, 5, (0, 0, 255), -1)
+            # cv2.circle(frame, centerTwo, 5, (0, 0, 255), -1)
     #============================================================
+    if centerTwo==None:
+        return
     print("test3")
 
-    coord = TargetTrajectoryTracker.predictCoord((centerOne[0], centerOne[1], 0), (centerTwo[0], centerTwo[1], 0), 0.5)
+    print(centerOne)
+    print(centerTwo)
+    print("test4")
+
+    coord = TargetTrajectoryTracker.predictCoord((centerOne[0], centerOne[1], 0), (centerTwo[0], centerTwo[1], 0), 0.25)
     
     print("test5")
-    cv2.circle(frame, (int(coord[0]), int(coord[1])), 5, (0, 0, 255), -1)
+    print(int(coord[0]),int(coord[1]))
+    # cv2.circle(frame, (int(coord[0]), 500-int(coord[1])), 5, (0, 255, 0), -1)
+    cv2.circle(frame, (int(coord[0]), 500-10), 5, (0, 255, 0), -1)
     cv2.imshow("FrameTrajectoryPredict", frame)
-    time.sleep(5)
     print("test6")
+    time.sleep(2)
 
        
 # Intialize Video Capture
@@ -121,7 +129,7 @@ while(True):
                 (0, 255, 255), 2)
             cv2.circle(frame, center, 5, (0, 0, 255), -1)
             print("hello")
-#            getNextFrame(center)
+            getNextFrame(center)
     #============================================================
     
     
@@ -135,6 +143,7 @@ while(True):
 # Release the capture
 vs.release()
 cv2.destroyAllWindows()
+
 
 
     
