@@ -1,24 +1,28 @@
 #!/usr/bin/env python3
+#Reference: https://techdevops.wordpress.com/2015/03/24/non-blocking-io-keyboard-listener-in-python/
 import serial
 import time
+import sys
+import select
 
-x = 5
-z = 3
 
-def pi_to_arduino(x,z):
+def pi_to_arduino():
     ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
     ser.flush()
     while True:
-        x = input('x=')
-        z = input('z=')
-        x1 = str(x).encode('utf-8')
-        z1 = str(z).encode('utf-8')
-        ser.write(x1)
-        ser.write(b"\n")
-        ser.write(z1)
+        input = select.select([sys.stdin], [], [], 0.02)[0] #waits 0.02 seconds for an input
+        if input:
+                keyboardIn = sys.stdin.readline().rstrip()
+                if(keyboardIn == "q"):
+                        sys.exit(0)
+                else: #input will be of form: "x z"
+                        print(keyboardIn)
+                        keyboardIn += "\n"
+                        ser.write(keyboardIn.encode('utf-8'))
+        
+        
+        #Reading from Arduino
         line = ser.readline().decode('utf-8').rstrip()
         print(line)
-        time.sleep(1)
-
-           
-pi_to_arduino(x,z)
+        
+pi_to_arduino()
