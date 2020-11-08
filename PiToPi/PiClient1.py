@@ -19,5 +19,6 @@ def transmit(message):
     # s.send(str.encode("EXIT"))
     s.close
 
+mesg = "X " + str(12)
+transmit(mesg)
 
-transmit("X 12")
