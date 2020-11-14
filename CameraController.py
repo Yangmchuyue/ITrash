@@ -5,14 +5,12 @@ import numpy
 import time
  
 def detectObject(mask):
-
     #============================================================
     # Source: https://www.pyimagesearch.com/2015/09/21/opencv-track-object-movement/
     # Using the mask found from the previous step, we use the
     # algorithm below to find and circle the contours.
     #============================================================
 
-   
     # find contours in the mask and initialize the current
     # (x, y) center of the ball
     cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
@@ -31,44 +29,47 @@ def detectObject(mask):
         if radius > 10:
             if M["m00"]!=0:
                 centre = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
-                
-#        # only proceed if the radius meets a minimum size
-#            # draw the circle and centroid on the frame,
-#            # then update the list of tracked points
-#            cv2.circle(frame, (int(x), int(y)), int(radius), (0, 255, 255), 2)
-#            cv2.circle(frame, centre, 5, (0, 0, 255), -1)
     #============================================================
-    
     return centre;
-    
-#    if centerTwo==None:
-#        return
-#
-#    print("test3")
-#
-#    coord = TargetTrajectoryTracker.predictCoord((centerOne[0], centerOne[1], 0), (centerTwo[0], centerTwo[1], 0), 0.5)
-#
-#    print("test5")
-#    cv2.circle(frame, (int(coord[0]), 500-int(coord[1])), 5, (0, 255, 0), -1)
-#    cv2.imshow("FrameTrajectoryPredict", frame)
-#    time.sleep(0)
-#    print("test6")
 
-       
+def convertPixeltoMetre(point):
+    xScale = 2.25
+    yScale = 2.25
+
+    return (point[0]/500 * xScale, point[1]/500 * yScale)
+
+
+def convertMetretoPixel(point):
+   xScale = 2.25
+   yScale = 2.25
+
+   return (int(point[0]/xScale * 500), int(point[1]/yScale * 500))
+
+              
 # Intialize Video Capture
 vs = cv2.VideoCapture(0)
 #vs = cv2.VideoCapture("Test_video.MOV")
 
+# Intialize Background Subtractor
 subtractor = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=100, detectShadows=False )
+
+
+out = cv2.VideoWriter('output.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (500,500))
 
 for x in range(30):
     ret, frame = vs.read()
 
 while(True):
     
+#    coord = TargetTrajectoryTracker.predictCoord((5, 20, 0), (15, 30, 0), 0.5)
+#    print("X Coord")
+#    print(coord[0])
+#    print("Y Coord")
+#    print(coord[1])
+#    break
 
     # Get current frame
-    ret, frame = cv2.VideoCapture("TestVid3.MOV").read()
+    ret, frame = vs.read()
     
     # Resize the image
     frame = cv2.resize(frame, (500, 500))
@@ -85,9 +86,9 @@ while(True):
     centreOne = detectObject(mask)
 
     if centreOne!=None:
-        print("Sleep Start")
+#        print("Sleep Start")
         time.sleep(0.5);
-        print("Sleep Stop")
+#        print("Sleep Stop")
         
         
         
@@ -107,24 +108,42 @@ while(True):
         mask = subtractor.apply(resize)
         
         centreTwo = detectObject(mask)
-        
+#        print("500-centreOne[1]")
+#        print(500-centreOne[1])
+
         if centreTwo!=None:
-            coord = TargetTrajectoryTracker.predictCoord((centreOne[0], centreOne[1], 0), (centreTwo[0], centreTwo[1], 0), 0.5)
+            centreOne = convertPixeltoMetre(centreOne)
+            centreTwo = convertPixeltoMetre(centreTwo)
+
+            coord = TargetTrajectoryTracker.predictCoord((centreOne[0], 500-centreOne[1]), (centreTwo[0], 500-centreTwo[1]), 0.5)
+
+            centreOne = convertMetretoPixel(centreOne)
+            centreTwo = convertMetretoPixel(centreTwo)
+            coord = convertMetretoPixel(coord)
 
     
-            cv2.circle(frame, centreOne, 5, (0, 0, 255), -1)
-            cv2.circle(frame, centreTwo, 5, (0, 255, 0), -1)
-            cv2.circle(frame, (int(coord[0]), 500-int(coord[1])), 5, (255, 0, 0), -1)
+            pos1 = "(" + str(centreOne[0]) + ", "+ str(500 - centreOne[1]) + ")"
+            pos2 = "(" + str(centreTwo[0]) + ", "+ str(500 - centreTwo[1]) + ")"
+            pos3 = "(" + str(int(coord[0])) + ", "+ str(500 - int(coord[1])) + ")"
 
-            cv2.imshow("Frame2", frame)
-#            time.sleep(0.5);
+            cv2.putText(frame, pos1, centreOne, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
+            cv2.putText(frame, pos2, centreTwo, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, pos3, (int(coord[0]), 500-int(coord[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
+
+            cv2.circle(frame, centreOne, 5, (0, 0, 255), -1)    # red
+            cv2.circle(frame, centreTwo, 5, (0, 255, 0), -1)    # green
+            cv2.circle(frame, (int(coord[0]), 500-int(coord[1])), 5, (255, 0, 0), -1)   # blue
+
+#            cv2.imshow("Frame2", frame)
 #            time.sleep(0.5);
 #            time.sleep(100);
 #
 #            break
     
 
-    
+    out.write(frame)
+
+
     # Display the final image
     cv2.imshow("Frame3", frame)
 
