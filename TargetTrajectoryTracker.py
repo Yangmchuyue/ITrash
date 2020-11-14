@@ -2,7 +2,7 @@ import array as arr
 
 def predictCoord(point0,point1,timeDiff):
     xVel = (point1[0]-point0[0])/timeDiff
-    yVel = (point1[1]-point0[1])/timeDiff
+    yVel = (point0[1]-point1[1])/timeDiff
     zVel = (point1[2]-point0[2])/timeDiff
     g = -9.81
     time = (-yVel - (yVel*yVel - 2 * g * point0[1]) ** 0.5)/g
