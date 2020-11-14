@@ -10,7 +10,7 @@ def getNextFrame(centerOne):
     print("Sleep End")
     
     # Get current frame
-    ret, frame = vs.read()
+    ret, frame = cv2.VideoCapture.read()
     
     # Resize the image
     frame = cv2.resize(frame, (500, 500))
@@ -83,7 +83,7 @@ ret, frame = vs.read()
 
 while(True):
     # Get current frame
-    ret, frame = vs.read()
+    ret, frame = cv2.VideoCapture("TestVid3.MOV").read()
     
     # Resize the image
     frame = cv2.resize(frame, (500, 500))
