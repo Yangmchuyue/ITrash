@@ -56,15 +56,16 @@ def detectObject(mask):
        
 # Intialize Video Capture
 vs = cv2.VideoCapture(0)
-#vs = cv2.VideoCapture("hardhatVid.MOV")
+#vs = cv2.VideoCapture("Test_video.MOV")
 
 subtractor = cv2.createBackgroundSubtractorMOG2(history=100, varThreshold=100, detectShadows=False )
 
-ret, frame = vs.read()
-ret, frame = vs.read()
-ret, frame = vs.read()
+for x in range(30):
+    ret, frame = vs.read()
 
 while(True):
+    
+
     # Get current frame
     ret, frame = vs.read()
     
@@ -80,12 +81,51 @@ while(True):
     # Apply mask onto the image
     mask = subtractor.apply(resize)
     
-    centre = detectObject(mask);
+    centreOne = detectObject(mask)
+
+    if centreOne!=None:
+        print("Sleep Start")
+        time.sleep(0.5);
+        print("Sleep Stop")
+        
+        
+        
+        # Get current frame
+        ret, frame = vs.read()
+        
+        # Resize the image
+        frame = cv2.resize(frame, (500, 500))
+
+        # Grayscale the image
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Resize the image
+        resize = cv2.resize(gray, (500, 500))
+        
+        # Apply mask onto the image
+        mask = subtractor.apply(resize)
+        
+        centreTwo = detectObject(mask)
+        
+        if centreTwo!=None:
+            coord = TargetTrajectoryTracker.predictCoord((centreOne[0], centreOne[1], 0), (centreTwo[0], centreTwo[1], 0), 0.5)
+
     
+            cv2.circle(frame, centreOne, 5, (0, 0, 255), -1)
+            cv2.circle(frame, centreTwo, 5, (0, 255, 0), -1)
+            cv2.circle(frame, (int(coord[0]), 500-int(coord[1])), 5, (255, 0, 0), -1)
+
+            cv2.imshow("Frame2", frame)
+#            time.sleep(0.5);
+#            time.sleep(0.5);
+#            time.sleep(100);
+#
+#            break
     
+
     
     # Display the final image
-#    cv2.imshow("Frame", frame)
+    cv2.imshow("Frame3", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
@@ -93,6 +133,7 @@ while(True):
 # Release the capture
 vs.release()
 cv2.destroyAllWindows()
+
 
 
     
