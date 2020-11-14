@@ -5,6 +5,7 @@ import numpy
 import time
  
 def detectObject(mask):
+
     #============================================================
     # Source: https://www.pyimagesearch.com/2015/09/21/opencv-track-object-movement/
     # Using the mask found from the previous step, we use the
@@ -67,7 +68,7 @@ while(True):
     
 
     # Get current frame
-    ret, frame = vs.read()
+    ret, frame = cv2.VideoCapture("TestVid3.MOV").read()
     
     # Resize the image
     frame = cv2.resize(frame, (500, 500))
