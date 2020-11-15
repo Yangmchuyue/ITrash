@@ -61,11 +61,27 @@ for x in range(30):
 
 while(True):
     
-#    coord = TargetTrajectoryTracker.predictCoord((5, 20, 0), (15, 30, 0), 0.5)
+    
+    
+#    coord = TargetTrajectoryTracker.predictCoord((0.621,1.4175), (0.8235, 0.612), 0.25)
 #    print("X Coord")
 #    print(coord[0])
 #    print("Y Coord")
 #    print(coord[1])
+#
+#    coord = convertPixeltoMetre((138, 315))
+#
+#    print("X Coord")
+#    print(coord[0])
+#    print("Y Coord")
+#    print(coord[1])
+#
+#    coord = convertMetretoPixel(coord)
+#    print("X Coord")
+#    print(coord[0])
+#    print("Y Coord")
+#    print(coord[1])
+#
 #    break
 
     # Get current frame
@@ -87,7 +103,7 @@ while(True):
 
     if centreOne!=None:
 #        print("Sleep Start")
-        time.sleep(0.5);
+        time.sleep(0.25);
 #        print("Sleep Stop")
         
         
@@ -112,26 +128,26 @@ while(True):
 #        print(500-centreOne[1])
 
         if centreTwo!=None:
-            centreOne = convertPixeltoMetre(centreOne)
-            centreTwo = convertPixeltoMetre(centreTwo)
+            centreOne = convertPixeltoMetre((centreOne[0], 500-centreOne[1]))
+            centreTwo = convertPixeltoMetre((centreTwo[0], 500-centreTwo[1]))
 
-            coord = TargetTrajectoryTracker.predictCoord((centreOne[0], 500-centreOne[1]), (centreTwo[0], 500-centreTwo[1]), 0.5)
+            coord = TargetTrajectoryTracker.predictCoord((centreOne[0], centreOne[1]), (centreTwo[0], centreTwo[1]), 0.25)
 
             centreOne = convertMetretoPixel(centreOne)
             centreTwo = convertMetretoPixel(centreTwo)
             coord = convertMetretoPixel(coord)
 
     
-            pos1 = "(" + str(centreOne[0]) + ", "+ str(500 - centreOne[1]) + ")"
-            pos2 = "(" + str(centreTwo[0]) + ", "+ str(500 - centreTwo[1]) + ")"
-            pos3 = "(" + str(int(coord[0])) + ", "+ str(500 - int(coord[1])) + ")"
+            pos1 = "(" + str(centreOne[0]) + ", "+ str(centreOne[1]) + ")"
+            pos2 = "(" + str(centreTwo[0]) + ", "+ str(centreTwo[1]) + ")"
+            pos3 = "(" + str(int(coord[0])) + ", "+ str(int(coord[1])) + ")"
 
-            cv2.putText(frame, pos1, centreOne, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
-            cv2.putText(frame, pos2, centreTwo, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
-            cv2.putText(frame, pos3, (int(coord[0]), 500-int(coord[1])), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, pos1, (centreOne[0], 500-centreOne[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
+            cv2.putText(frame, pos2, (centreTwo[0], 500-centreTwo[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, pos3, (int(coord[0]), (500-int(coord[1]))), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
 
-            cv2.circle(frame, centreOne, 5, (0, 0, 255), -1)    # red
-            cv2.circle(frame, centreTwo, 5, (0, 255, 0), -1)    # green
+            cv2.circle(frame, (centreOne[0], 500-centreOne[1]), 5, (0, 0, 255), -1)    # red
+            cv2.circle(frame, (centreTwo[0], 500-centreTwo[1]), 5, (0, 255, 0), -1)    # green
             cv2.circle(frame, (int(coord[0]), 500-int(coord[1])), 5, (255, 0, 0), -1)   # blue
 
 #            cv2.imshow("Frame2", frame)
