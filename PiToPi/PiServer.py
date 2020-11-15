@@ -34,15 +34,12 @@ def dataTransfer(conn):
         # Split the data such that you separate the command from the rest of the data.
         dataMessage = data.split(' ', 1)
         command = dataMessage[0]
-        if command == "X":
+        if command == "x":
             print(get("x", dataMessage))
             break
-        elif command == 'Y':
-            print(get("y", dataMessage))
+        elif command == 'z':
+            print(get("z", dataMessage))
             break
-        # elif command == 'EXIT':
-        #     print("The client has disconnected :(")
-        #     break
         elif command == 'KILL':
             print("Server is shutting down.")
             s.close()
@@ -56,5 +53,5 @@ while True:
         conn = setupConnection()
         dataTransfer(conn)
     except:
-        print("bad")
+        print("Interrupt")
         break

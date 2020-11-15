@@ -7,8 +7,10 @@ import select
 
 
 def arduinoToPi():
+    # a = 0   # leave here for use in MainPi.py
     line = ser.readline().decode('utf-8').rstrip()
     print(line)
+    # time.sleep(a)
 
 
 def piToArduino():
