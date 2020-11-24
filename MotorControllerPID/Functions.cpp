@@ -2,10 +2,10 @@
 
 //PIN SETUP===============================================================
 //Ultrasonic Sensor Pins
-const int trigPinR = 7; //R for right ultrasonic sensor
-const int echoPinR = 8;
-const int trigPinB = 12; //B for bottom ultrasonic sensor
-const int echoPinB = 13;
+const int trigPinB = 7; //B for bottom ultrasonic sensor
+const int echoPinB = 8;
+const int trigPinR = 12; //R for right ultrasonic sensor
+const int echoPinR = 13;
 
 //Arduino Motor PWM Pins
 const int topMotorPin = 3;
@@ -39,19 +39,26 @@ void Functions::ultrasonicSetup(){
     pinMode(echoPinB, INPUT);
 }
 
-void Functions::moveX(double power){
-    topMotor.write(map(power, -100, 100, 1000, 2000));
-    botMotor.write(map(-power, -100, 100, 1000, 2000));
+void Functions::filterData(double *targetX, double *targetZ, int minDist, int maxDist){
+    if (*targetX < minDist) *targetX = minDist;
+    if (*targetZ < minDist) *targetZ = minDist;
+    if (*targetX > maxDist) *targetX = maxDist;
+    if (*targetZ > maxDist) *targetZ = maxDist;
 }
 
-void Functions::moveZ(double power){
-    rightMotor.write(map(power, -100, 100, 1000, 2000));
-    leftMotor.write(map(power, -100, 100, 1000, 2000));
+void Functions::moveX(int power){
+    topMotor.write(map(-power, -100, 100, 1000, 2000));
+    botMotor.write(map(power, -100, 100, 1000, 2000));
 }
 
-void Functions::moveToPositionX(double targetX, double distanceX, double power){
+void Functions::moveZ(int power){
+    rightMotor.write(map(-power, -100, 100, 1000, 2000));
+    leftMotor.write(map(-power, -100, 100, 1000, 2000));
+}
+
+void Functions::moveToPositionX(double targetX, double distanceX, int power){
     double margin = 3.0;
-    double error = distanceX - targetX;
+    double error = targetX - distanceX;
     if (abs(error) > margin) { //check if robot is close enough to target position
         if (error > 0) moveX(power);
         else moveX(-power);
@@ -59,9 +66,9 @@ void Functions::moveToPositionX(double targetX, double distanceX, double power){
     else moveX(0);
 }
 
-void Functions::moveToPositionZ(double targetZ, double distanceZ, double power){
+void Functions::moveToPositionZ(double targetZ, double distanceZ, int power){
     double margin = 5.0;
-    double error = distanceZ - targetZ;
+    double error = targetZ - distanceZ;
     if (abs(error) > margin) { //check if robot is close enough to target position
         if (error > 0) moveZ(power);
         else moveZ(-power);
@@ -78,4 +85,5 @@ double Functions::ultrasonicDist(int trigPin, int echoPin){
     double duration = pulseIn(echoPin, HIGH);
     return (0.034 * duration) / 2;
 }
+
 

@@ -36,10 +36,11 @@ class Functions {
         //Methods
         void motorSetup();
         void ultrasonicSetup();
-        void moveX(double power);
-        void moveZ(double power);
-        void moveToPositionX(double targetX, double distanceX, double power);
-        void moveToPositionZ(double targetZ, double distanceZ, double power);
+        void filterData(double *targetX, double *targetZ, int minDist, int maxDist);
+        void moveX(int power);
+        void moveZ(int power);
+        void moveToPositionX(double targetX, double distanceX, int power);
+        void moveToPositionZ(double targetZ, double distanceZ, int power);
         double ultrasonicDist(int trigPin, int echoPin);
         
     private:
@@ -47,3 +48,4 @@ class Functions {
 };
 
 #endif
+

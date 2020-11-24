@@ -10,9 +10,12 @@
 //Motion
 double outputX, outputZ;
 double distanceX, distanceZ;
+double minDist = 8.0, maxDist = 250.0;
 double targetX, targetZ;
-double xKp = 0, xKi = 0, xKd = 0;
-double zKp = 0, zKi = 0, zKd = 0;
+//Tu = 0.96 Ku = 11
+double xKp = 6, xKi = 15, xKd = 0.8; //6, 13, 0.8
+double zKp = 5, zKi = 15, zKd = 0.8;
+double errorX, errorZ;
 
 //Communication:
 int index;
@@ -38,8 +41,10 @@ void setup(){
     //Set the PID to off at start
     xPID.SetMode(MANUAL);
     zPID.SetMode(MANUAL);
-    xPID.SetOutputLimits(-100, 100);
-    zPID.SetOutputLimits(-100, 100);
+    //xPID.SetControllerDirection(REVERSE);
+    //zPID.SetControllerDirection(REVERSE);
+    xPID.SetOutputLimits(-90, 90);
+    zPID.SetOutputLimits(-90, 90);
 }
 
 
@@ -48,14 +53,20 @@ void loop(){
     //Collecting Sensor Data
     distanceX = functions.ultrasonicDist(trigPinR, echoPinR); //Right Ultrasonic Sensor
     distanceZ = functions.ultrasonicDist(trigPinB, echoPinB); //Bottom Ultrasonic Sensor
-
+    errorX = targetX - distanceX;
+    errorZ = targetZ - distanceZ;
+    
     //Receiving commands from Raspberry Pi
     if (Serial.available() > 0){
         data = Serial.readStringUntil('\n');
         if (data == "q"){
             pause = true;
+            xPID.SetMode(MANUAL);
+            zPID.SetMode(MANUAL);
+            functions.moveX(0);
+            functions.moveZ(0);
         }
-        else if (data == ""){ //If user enters in nothing, the robot pauses
+        else if (data == "" || data == " "){ //If user enters in nothing, the robot pauses
             if (pause) pause = false;
             else pause = true;
         }
@@ -66,6 +77,9 @@ void loop(){
             zData = data.substring(index+1);
             targetX = xData.toFloat();
             targetZ = zData.toFloat();
+            functions.filterData(&targetX, &targetZ, minDist, maxDist);
+            xPID.SetMode(MANUAL);
+            zPID.SetMode(MANUAL);
         }
     }
     
@@ -74,10 +88,19 @@ void loop(){
         //Turn PID on and compute the output
         xPID.SetMode(AUTOMATIC);
         zPID.SetMode(AUTOMATIC);
+        xKi = 0;
+        zKi = 0;
+        if (abs(errorX) < 15.0) xKi = 15;
+        if (abs(errorZ) < 15.0) zKi = 15;
         xPID.Compute();
         zPID.Compute();
-        functions.moveX(outputX);
-        functions.moveZ(outputZ);
+        functions.moveX((int)outputX);
+        //functions.moveZ((int)outputZ);
+
+        //Displaying sensor values and target position
+        displayOutput = "X:" + String(distanceX) + "  Z:" + String(distanceZ);
+        displayOutput += "  (" + String(targetX) + "," + String(targetZ) + ")";
+        Serial.println(displayOutput);
     }
     else{
         //Turn PID and motors off
@@ -86,10 +109,6 @@ void loop(){
         functions.moveX(0);
         functions.moveZ(0);
     }
-    
-    //Displaying sensor values and target position
-    displayOutput = "X:" + String(distanceX) + " Z:" + String(distanceZ) + " (" + String(targetX) + "," + String(targetZ) + ")";
-    Serial.println(displayOutput);
     delay(50);
 }
 
