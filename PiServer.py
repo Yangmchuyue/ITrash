@@ -1,4 +1,9 @@
 import socket
+import serial as serial
+import PiToArduino
+from threading import Thread
+
+import time
 
 host = ''
 port = 6009  # arbituary port #
@@ -48,6 +53,13 @@ def dataTransfer(conn):
 
 
 s = setupServer()
+#ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1) #set up arduino comm.
+#ser.flush()
+#while True:
+time.sleep(3)
+PiToArduino.piToArduino()
+#abc = "50 34\n"
+#ser.write(abc.encode('utf-8'))
 while True:
     try:
         conn = setupConnection()
