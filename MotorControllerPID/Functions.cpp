@@ -18,6 +18,7 @@ Servo rightMotor;
 Servo botMotor;
 Servo leftMotor;
 
+
 Functions::Functions(void){}
 
 
@@ -37,6 +38,16 @@ void Functions::ultrasonicSetup(){
     pinMode(echoPinR, INPUT);
     pinMode(trigPinB, OUTPUT);
     pinMode(echoPinB, INPUT);
+}
+
+void Functions::processData(String data, double *targetX, double *targetZ, int minDist, int maxDist){
+    int index = data.indexOf(" ");
+    *targetX = data.substring(0,index).toFloat();
+    *targetZ = data.substring(index+1).toFloat();
+    if (*targetX < minDist) *targetX = minDist;
+    if (*targetZ < minDist) *targetZ = minDist;
+    if (*targetX > maxDist) *targetX = maxDist;
+    if (*targetZ > maxDist) *targetZ = maxDist;
 }
 
 void Functions::filterData(double *targetX, double *targetZ, int minDist, int maxDist){
@@ -74,6 +85,13 @@ void Functions::moveToPositionZ(double targetZ, double distanceZ, int power){
         else moveZ(-power);
     }
     else moveZ(0);
+}
+
+void Functions::pidOff(PID *xPID, PID *zPID){
+    xPID->SetMode(MANUAL);
+    zPID->SetMode(MANUAL);
+    Functions::moveX(0);
+    Functions::moveZ(0);
 }
 
 double Functions::ultrasonicDist(int trigPin, int echoPin){

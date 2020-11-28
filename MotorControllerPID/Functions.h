@@ -7,7 +7,7 @@
 
 #include "Arduino.h"
 #include <Servo.h>
-
+#include <PID_v1.h>
 
 //PIN SETUP===============================================================
 //Ultrasonic Sensor Pins
@@ -36,11 +36,13 @@ class Functions {
         //Methods
         void motorSetup();
         void ultrasonicSetup();
+        void processData(String data, double *targetX, double *targetZ, int minDist, int maxDist);
         void filterData(double *targetX, double *targetZ, int minDist, int maxDist);
         void moveX(int power);
         void moveZ(int power);
         void moveToPositionX(double targetX, double distanceX, int power);
         void moveToPositionZ(double targetZ, double distanceZ, int power);
+        void pidOff(PID *xPID, PID *zPID);
         double ultrasonicDist(int trigPin, int echoPin);
         
     private:
