@@ -1,17 +1,21 @@
 import cv2
 import TargetTrajectoryTracker
-# from PiToPi import PiClient1
 import imutils
 import numpy
 import time
-
 import socket
+import sys
+import select
+import os
+
+# Windows
+if os.name == 'nt':
+    import msvcrt
 
 # duplicate for each client
 
-host = '192.168.1.77'  # update after setup
-port = 6040
-
+host = '192.168.1.79'  # update after setup
+port = int(input("Port: "))
 
 def setupSocket():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,9 +24,12 @@ def setupSocket():
 
 
 def transmit(message):
-    s = setupSocket()
-    s.send(str.encode(message))
-    s.close
+    try:
+        s = setupSocket()
+        s.send(str.encode(message))
+        s.close
+    except:
+        print("Connection Error")
 
 
 def detectObject(mask):
@@ -47,7 +54,7 @@ def detectObject(mask):
         c = max(cnts, key=cv2.contourArea)
         ((x, y), radius) = cv2.minEnclosingCircle(c)
         M = cv2.moments(c)
-        if radius > 2:
+        if radius > 2 and radius < 60:
             if M["m00"] != 0:
                 centre = (int(M["m10"] / M["m00"]),
                           int(M["m01"] / M["m00"]))
@@ -56,21 +63,21 @@ def detectObject(mask):
 
 
 def convertPixeltoMetre(point):
-    xScale = 1.66
-    yScale = 1.26
+    xScale = 1.80
+    yScale = 1.70
 
     return (point[0]/500 * xScale, point[1]/500 * yScale)
 
 
 def convertMetretoPixel(point):
-    xScale = 1.66
-    yScale = 1.26
+    xScale = 1.80
+    yScale = 1.70
 
     return (int(point[0]/xScale * 500), int(point[1]/yScale * 500))
 
 
 # Intialize Video Capture
-vs = cv2.VideoCapture(0)
+vs = cv2.VideoCapture(2)
 # vs = cv2.VideoCapture("Test_video.MOV")
 
 # Intialize Background Subtractor
@@ -84,28 +91,30 @@ out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc(
 for x in range(30):
     ret, frame = vs.read()
 
-while(True):
+pause = False
+red = (0, 0, 255)
+green = (0, 255, 0)
+blue = (255, 0, 0)
 
-    #    coord = TargetTrajectoryTracker.predictCoord((0.621,1.4175), (0.8235, 0.612), 0.25)
-    #    print("X Coord")
-    #    print(coord[0])
-    #    print("Y Coord")
-    #    print(coord[1])
-    #
-    #    coord = convertPixeltoMetre((138, 315))
-    #
-    #    print("X Coord")
-    #    print(coord[0])
-    #    print("Y Coord")
-    #    print(coord[1])
-    #
-    #    coord = convertMetretoPixel(coord)
-    #    print("X Coord")
-    #    print(coord[0])
-    #    print("Y Coord")
-    #    print(coord[1])
-    #
-    #    break
+time.sleep(1)
+
+while(True):
+    # Check for keyboard input to pause/unpause
+    '''
+    input = select.select([sys.stdin], [], [], 0.02)[0]
+    if input:
+        keyboardIn = sys.stdin.readline().rstrip()
+        if keyboardIn == "":
+            if pause:
+                pause = False
+            else:
+                pause = True
+    '''
+    #if msvcrt.getch() == '\n' and pause:
+    if pause:
+        if input():
+            print("Unpause")
+            pause = False
 
     # Get current frame
     ret, frame = vs.read()
@@ -125,9 +134,7 @@ while(True):
     centreOne = detectObject(mask)
 
     if centreOne != None:
-        #        print("Sleep Start")
         time.sleep(0.25)
-#        print("Sleep Stop")
 
         # Get current frame
         ret, frame = vs.read()
@@ -145,8 +152,6 @@ while(True):
         mask = subtractor.apply(resize)
 
         centreTwo = detectObject(mask)
-#        print("500-centreOne[1]")
-#        print(500-centreOne[1])
 
         if centreTwo != None:
             centreOne = convertPixeltoMetre((centreOne[0], 500-centreOne[1]))
@@ -155,9 +160,14 @@ while(True):
             coord = TargetTrajectoryTracker.predictCoord(
                 (centreOne[0], centreOne[1]), (centreTwo[0], centreTwo[1]), 0.1)
 
-            mesg = "x " + str(100*coord[0])
-            # mesg = "x" + str(14)
-            transmit(mesg)
+            #Threshold for how far the robot can move away from wall.
+            if coord[0] > 1.00:
+                coord[0] = 1.00
+
+            if not pause:
+                mesg = "x " + str(int(100*coord[0]))
+                transmit(mesg)
+                pause = True
 
             centreOne = convertMetretoPixel(centreOne)
             centreTwo = convertMetretoPixel(centreTwo)
@@ -168,30 +178,21 @@ while(True):
             pos3 = "(" + str(int(coord[0])) + ", " + str(int(coord[1])) + ")"
 
             cv2.putText(frame, pos1, (centreOne[0], 500-centreOne[1]),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, red, 2, cv2.LINE_AA)
             cv2.putText(frame, pos2, (centreTwo[0], 500-centreTwo[1]),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, green, 2, cv2.LINE_AA)
             cv2.putText(frame, pos3, (int(coord[0]), (500-int(coord[1]))),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, blue, 2, cv2.LINE_AA)
 
-            cv2.circle(
-                frame, (centreOne[0], 500-centreOne[1]), 5, (0, 0, 255), -1)    # red
-            # green
-            cv2.circle(frame, (centreTwo[0], 500 -
-                               centreTwo[1]), 5, (0, 255, 0), -1)
-            cv2.circle(
-                frame, (int(coord[0]), 500-int(coord[1])), 5, (255, 0, 0), -1)   # blue
+            cv2.circle(frame, (centreOne[0], 500-centreOne[1]), 5, red, -1)     # red
+            cv2.circle(frame, (centreTwo[0], 500 - centreTwo[1]), 5, green, -1) # green
+            cv2.circle(frame, (int(coord[0]), 500-int(coord[1])), 5, blue, -1)  # blue
 
-
-#            cv2.imshow("Frame2", frame)
-#            time.sleep(0.5);
-#            time.sleep(100);
-#
-#            break
 
     out.write(frame)
 
     # Display the final image
+    frame = cv2.resize(frame, (850, 850))
     cv2.imshow("Frame3", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
